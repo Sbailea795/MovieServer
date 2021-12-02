@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat;
 
 public class chatClient {
 
-    private static final int datagramSize = 164;
+    private static final int datagramSize = 5000;
     static private SimpleDateFormat formatter= new SimpleDateFormat("'at' HH:mm:ss z");
 
     //Will take in necessary input, then open a local UDP port and connects to the server
@@ -38,19 +38,13 @@ public class chatClient {
         //NUID is used in port number
         System.out.println("Enter your NUID (or a random number/port):");
         int NUID = Integer.parseInt(in.readLine());
-        int CID=-1; //temporary value; try-catch will quit if it cant reassign CID
         int localPort = NUID % 65535;
-
-        //Choose a username to use when sending others messages
-        System.out.println("Enter your Username:");
-        String userName = in.readLine();
-
 
         //UDP socket on your local machine.
         DatagramSocket socketConnection = new DatagramSocket(localPort);
 
-        //Create Message and send JOIN REQ
-        Message datum = new Message(0, "JOIN", userName);
+        //Create MovieMessage and send JOIN REQ
+        MovieMessage datum = new MovieMessage(1, 0, "");
         DatagramPacket sendPacket = new DatagramPacket(datum.serialize(), datagramSize, InetAddress.getByName(serverName), serverPort);
         socketConnection.send(sendPacket);
         if (verbose) System.out.println("DEBUG MESSAGE: " + "attempted to join...\n");
@@ -63,9 +57,10 @@ public class chatClient {
             socketConnection.setSoTimeout(5000);
             socketConnection.receive(receivePacket);
             datum.deserialize(receivePacket.getData());
-            CID = datum.getCid();
-            printJoinMessage(datum);
-            if (verbose) System.out.println("DEBUG MESSAGE: " + "Connection Confirmed\n");
+            if (datum.getSegment() == -1 && datum.getFrameNumber() == -1 && (verbose))
+                System.out.println("DEBUG MESSAGE: " + "Connection Confirmed\n");
+            else
+                System.exit(-1);
         }
         catch (SocketTimeoutException e) {
             System.out.println("\n|***|");
@@ -86,11 +81,11 @@ public class chatClient {
                     String input = in.readLine();
                     if (verbose) System.out.println("DEBUG MESSAGE: parsing '" + input + "'\n   And sending it to the server\n");
                     if (input.equals("QUIT")){
-                        datum = new Message(-1 * CID, "QUIT", userName);
+                        datum = new MovieMessage(-1, 0, "");
                         loop = false;
                     }
                     else
-                        datum = new Message(CID, userName, input);
+                    System.out.println("\t\b\b\b" + input + " is an invalid command.\n");
 
                     sendPacket = new DatagramPacket(datum.serialize(), datagramSize, InetAddress.getByName(serverName), serverPort);
                     socketConnection.send(sendPacket);
@@ -103,15 +98,7 @@ public class chatClient {
                 datum.deserialize(datagram.getData());
                 //parse and handle message as necessary. Only gets to thing point if no errors
                 //were encountered.
-                if (datum.getStr1().equals("QUIT") & datum.getCid() != CID){
-                    printQuitMessage(datum);
-                }
-                else if  (datum.getStr1().equals("JOIN")){
-                    printJoinMessage(datum);
-                }
-                else if (datum.getCid() != CID) {
-                    printMessage(datum);
-                }
+                printMessage(datum);
             }
             //ignore timeouts (they are to be expected)
             catch (SocketTimeoutException e){
@@ -141,67 +128,13 @@ public class chatClient {
     *    printJoinMessage will print normal messages of *
     *    another user in the chat.                      *
     *  INPUT PARAMETERS :                               *           
-    *    Message - The message to be printed            *    
+    *    MovieMessage - The message to be printed            *    
     *  OUTPUT :                                         *    
     *    Gives a boolean value to indicate the funtion  *
     *    completed without error.                       *    
     ****************************************************/
-    public static boolean printMessage(Message datum){
-        System.out.println(datum.getStr2());
-        System.out.println("\t\b\b\b"+datum.getStr1() + " " + formatter.format(System.currentTimeMillis()) + ".\n");
-        return true;
-    }
-
-
-    /****************************************************
-    *  FUNCTION printJoinMessage:                       *
-    *    printJoinMessage will print join messages of   *
-    *    another user joining the chat.                 *
-    *  INPUT PARAMETERS :                               *           
-    *    Message - The message to be printed            *    
-    *  OUTPUT :                                         *    
-    *    Gives a boolean value to indicate the funtion  *
-    *    completed without error.                       *    
-    ****************************************************/
-    public static boolean printJoinMessage(Message datum){
-        System.out.println(datum.getStr2() + " joined the chat. Welcome " + datum.getStr2());
-        System.out.println("\t\b\b\bSYSTEM " + formatter.format(System.currentTimeMillis()) + ".\n");
-        return true;
-    }
-
-
-    /****************************************************
-    *  FUNCTION printQuitMessage:                       *
-    *    printQuitMessage will print quit messages of   *
-    *    another user quiting the chat.                 *
-    *  INPUT PARAMETERS :                               *           
-    *    Message - The message to be printed            *    
-    *  OUTPUT :                                         *    
-    *    Gives a boolean value to indicate the funtion  *
-    *    completed without error.                       *    
-    ****************************************************/
-    public static boolean printQuitMessage(Message datum){
-        System.out.println(datum.getStr2() + " left the chat. Goodbye " + datum.getStr2());
-        System.out.println("\t\b\b\bSYSTEM " + formatter.format(System.currentTimeMillis()) + ".\n");
-        return true;
-    }
-
-
-    /****************************************************
-    *  FUNCTION printDebugMessage:                      *
-    *    printDebugMessage will print all elements of a *
-    *    a message for the purposes of debugging        *
-    *  INPUT PARAMETERS :                               *           
-    *    Message - The message to be printed            *    
-    *  OUTPUT :                                         *    
-    *    Gives a boolean value to indicate the funtion  *
-    *    completed without error.                       *    
-    ****************************************************/
-    public static boolean printDebugMessage(Message datum){
-        System.out.println("\n\t\b\b\bDEBUG:");
-        System.out.println("\t\b<" + datum.getCid());
-        System.out.println("\t" + datum.getStr1());
-        System.out.println("\t" + datum.getStr2() + ">\n");
+    public static boolean printMessage(MovieMessage datum){
+        System.out.println(datum.getFrame());
         return true;
     }
 }

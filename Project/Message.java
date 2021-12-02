@@ -6,7 +6,7 @@ public class Message{
     
 /*********************************
  * METHOD: Message constructor   *
- * INPUT PARAMETERS :            *
+ * INPUT PARAMETERS :            *`~
  *  connection id, first string, *
  *  second string, debug mode    *
  * OUTPUT:                       *

@@ -1,21 +1,24 @@
-public class Message{
-    private int _cid;
-    private byte[] _str1;
-    private byte[] _str2;
-    //private boolean _debug;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
+public class MovieMessage{
+    private final int MAXSIZE = 5000;
+    private int _segment;
+    private int _frameNumber;
+    private byte[] _frame;
     
 /*********************************
  * METHOD: Message constructor   *
- * INPUT PARAMETERS :            *
+ * INPUT PARAMETERS :            *`~
  *  connection id, first string, *
  *  second string, debug mode    *
  * OUTPUT:                       *
  *  None                         *
  *********************************/
-    public Message(int cid, String str1, String str2){
-        _cid = cid;
-        _str1 = str1.getBytes();
-        _str2 = str2.getBytes();
+    public MovieMessage(int segment, int frameNumber, String frame){
+        _segment = segment;
+        _frameNumber = frameNumber;
+        _frame = frame.getBytes();
     }
 
 
@@ -30,19 +33,18 @@ public class Message{
   *     transport                           *
   *******************************************/
     public byte[] serialize(){
-        byte[] rval = new byte[164];
-        for (int i = 0; i < 164; ++i)
+        byte[] rval = new byte[MAXSIZE];
+        for (int i = 0; i < MAXSIZE; ++i)
             rval[i] = 0x00;
-        rval[3] =(byte) ((_cid & 0xFF000000) >> 24);
-        rval[2] =(byte) ((_cid & 0x00FF0000) >> 16);
-        rval[1] =(byte) ((_cid & 0x0000FF00) >> 8);
-        rval[0] =(byte) ((_cid & 0x000000FF));
-        //int max = 0;
-        for (int i = 0; i < _str1.length; ++i){
-            rval[4+i] = _str1[i];
-        }
-        for (int i = 0; i < _str2.length; ++i){
-            rval[84+i] = _str2[i];
+
+        byte[] segment = ByteBuffer.allocate(6).putInt(_segment).array();
+        for (int i = 0; i < 6; ++i)
+            rval[i] = segment[i];
+        byte[] frameNum = ByteBuffer.allocate(1).putInt(_frameNumber).array();
+            for (int i = 6; i < 7; ++i)
+                rval[i] = frameNum[i];
+        for (int i = 0; i < _frame.length; ++i){
+            rval[7+i] = _frame[i];
         }
         return rval;
     }
@@ -58,22 +60,18 @@ public class Message{
   *     None                                *
   *******************************************/
     public void deserialize(byte[] msg){
-        _cid = 0;
-        _cid |= ((int) msg[3]) << 24;
-        _cid |= ((int) msg[2]) << 16;
-        _cid |= ((int) msg[1]) << 8;
-        _cid |= ((int) msg[0]);
-        String str1 = "";
-        String str2 = "";
+        byte[] segment = Arrays.copyOfRange(msg, 0, 6);
+        _segment = ByteBuffer.wrap(segment).getInt();
         
-        for (int i = 0; i < 80 && msg[4+i] != 0; ++i){
-            str1 +=(char) msg[4 + i];
+        byte[] frameNum = Arrays.copyOfRange(msg, 6, 7);
+        _frameNumber = ByteBuffer.wrap(frameNum).getInt();
+
+        String frame = "";
+        
+        for (int i = 0; i < MAXSIZE - 7 && msg[4+i] != 0; ++i){
+            frame +=(char) msg[4 + i];
         }
-        _str1 = str1.getBytes();
-        for (int i = 0; i < 80 && msg[84+i] != 0; ++i){
-            str2 += (char) msg[84 + i];
-        }
-        _str2 = str2.getBytes();
+        _frame = frame.getBytes();
     }
 
 
@@ -85,14 +83,16 @@ public class Message{
   * OUTPUT:                                 *
   *     Data member value                   *
   *******************************************/
-    public int getCid(){
-        return _cid;
+    
+    public int getSegment(){
+        return _segment;
     }
 
-    public String getStr1(){
-        return new String(_str1);
+    public int getFrameNumber(){
+        return _frameNumber;
     }
-    public String getStr2(){
-        return new String(_str2);
+
+    public String getFrame(){
+        return new String(_frame);
     }
 }
