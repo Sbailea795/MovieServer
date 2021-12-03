@@ -2,7 +2,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class MovieMessage{
-    private final int MAXSIZE = 5000;
+    private final int MAXSIZE = 15000;
     private int _segment;
     private int _frameNumber;
     private byte[] _frame;

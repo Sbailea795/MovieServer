@@ -7,7 +7,10 @@
 *   Purpose:   Simple Chat Client and Server        *
 ****************************************************/
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
@@ -56,12 +59,12 @@ public class MovieServer {
                     File f = new File(fileLocation + String.format("%05d", datum.getSegment()) + ".txt");
                     f.setReadOnly();
                     String frameText = "";
-                    Scanner reader = new Scanner(f);  
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-16"));  
                     for (int i = 0; i < 33 * datum.getFrameNumber(); i++) {
-                            reader.nextLine();
+                            reader.readLine();
                         }
                     for (int i = 0; i < 33; i++) {
-                        frameText += reader.nextLine() + "\n";
+                        frameText += reader.readLine();
                     }
                     reader.close();
                     reply = new MovieMessage(datum.getSegment(), datum.getFrameNumber(), frameText);
