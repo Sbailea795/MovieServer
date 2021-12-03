@@ -1,3 +1,4 @@
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -13,12 +14,13 @@ public class MovieMessage{
  *  connection id, first string, *
  *  second string, debug mode    *
  * OUTPUT:                       *
- *  None                         *
+ *  None                         
+ * @throws UnsupportedEncodingException*
  *********************************/
-    public MovieMessage(int segment, int frameNumber, String frame){
+    public MovieMessage(int segment, int frameNumber, String frame) throws UnsupportedEncodingException{
         _segment = segment;
         _frameNumber = frameNumber;
-        _frame = frame.getBytes();
+        _frame = frame.getBytes("UTF-16");
     }
 
 
@@ -57,9 +59,10 @@ public class MovieMessage{
   * INPUT:                                  *
   *     the byte array to convert           *
   * OUTPUT:                                 *
-  *     None                                *
+  *     None                                
+ * @throws UnsupportedEncodingException*
   *******************************************/
-    public void deserialize(byte[] msg){
+    public void deserialize(byte[] msg) throws UnsupportedEncodingException{
         byte[] segment = Arrays.copyOfRange(msg, 0, 6);
         _segment = ByteBuffer.wrap(segment).getInt();
         
@@ -71,7 +74,7 @@ public class MovieMessage{
         for (int i = 0; i < MAXSIZE - 10 && msg[10+i] != 0; ++i){
             frame +=(char) msg[10 + i];
         }
-        _frame = frame.getBytes();
+        _frame = frame.getBytes("UTF-16");
     }
 
 

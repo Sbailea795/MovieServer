@@ -14,11 +14,11 @@ import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
-import java.util.Scanner;
+
 public class MovieServer {
 
     private static final int datagramSize = 5000;
-    private static final String fileLocation = "A:\\SWANH160x33\\";
+    private static final String fileLocation = "C:\\SWANH160x33\\";
     public static void main(String argv[]) throws Exception {
         
         //handle 0 or 1 input of argv[1]; default is verbose mode
@@ -61,8 +61,8 @@ public class MovieServer {
                     String frameText = "";
                     BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-16"));  
                     for (int i = 0; i < 33 * datum.getFrameNumber(); i++) {
-                            reader.readLine();
-                        }
+                        reader.readLine();
+                    }
                     for (int i = 0; i < 33; i++) {
                         frameText += reader.readLine();
                     }
@@ -70,6 +70,9 @@ public class MovieServer {
                     reply = new MovieMessage(datum.getSegment(), datum.getFrameNumber(), frameText);
                     if (verbose) System.out.println("Sending: <" + reply.getSegment() +", "+ reply.getFrameNumber()+">");
                     sendMessage(reply, socketConnection);
+                    reply.deserialize(reply.serialize());
+                    if (verbose) System.out.println(reply.getFrame());
+                    if (verbose) System.out.println("End: <" + reply.getSegment() +", "+ reply.getFrameNumber()+">\n");
 
                 }
             }

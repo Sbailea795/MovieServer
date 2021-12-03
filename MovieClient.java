@@ -84,7 +84,7 @@ public class MovieClient {
         begin = System.currentTimeMillis()/1000;
         Timer frameHandler = new Timer();
 
-        for (int frame = BufferSize+800; frame < 7304; frame+=BufferSize*2) {
+        for (int frame = BufferSize; frame < 7304; frame+=BufferSize*2) {
             int segment = frame/BufferSize;
             Future<?> RefreshA = threadpool.submit(() -> {
                 try {
@@ -100,18 +100,20 @@ public class MovieClient {
                 final int frameCount = frame;
                 TimerTask frameTask = new TimerTask() {
                     public void run() {
-                        System.out.print(frameBufferB[buffer].getFrame());
                         System.out.print(String.format("Frame: %09d ", frameCount + buffer) + 
                                         String.format("Time Stamp: %09d", (frameCount + buffer) / 8) +
                                         String.format("Time: %06f", System.currentTimeMillis()/1000-begin));
+                        System.out.print(frameBufferB[buffer].getFrame());
                     }
                 };
+                Thread.sleep(50);
                 if (begin - System.currentTimeMillis()/1000 * 8 - (frame +bufferedFrame) > 1)
-                    frameHandler.schedule(frameTask, 75);
+                    frameHandler.schedule(frameTask, 1075);
                 else
-                    frameHandler.schedule(frameTask, 125);
+                    frameHandler.schedule(frameTask, 1125);
             }
             while(!RefreshA.isDone());// System.out.println("Waiting on Segment "+ segment +".");
+            System.exit(0);
             Future<?> RefreshB = threadpool.submit(() -> {
                 try {
                     frameBufferB = refreshBuffer(segment+1, socketConnection, serverName, serverPort);
@@ -126,17 +128,17 @@ public class MovieClient {
                 final int frameCount = frame + BufferSize;
                 TimerTask frameTask = new TimerTask() {
                     public void run() {
-                        System.out.print(frameBufferB[buffer].getFrame());
                         System.out.print(String.format("Frame: %9d ", frameCount + buffer) + 
                                         String.format("Time Stamp: %09d ", (frameCount + buffer) / 8) +
                                         String.format("Time: %06f ", System.currentTimeMillis()/1000-begin));
-            
+                        System.out.print(frameBufferA[buffer].getFrame()+"\nNumber:"+frameCount+buffer);
                     }
                 };
                 if (begin - System.currentTimeMillis()/1000 * 8 - (frame +bufferedFrame) > 1)
-                    frameHandler.schedule(frameTask, 75);
+                    frameHandler.schedule(frameTask, 1075);
                 else
-                    frameHandler.schedule(frameTask, 125);
+                    frameHandler.schedule(frameTask, 1125);
+                Thread.sleep(50);
             }
 
             while(!RefreshB.isDone()); //System.out.println("Waiting on Segment "+ (segment+1) +".");
@@ -149,13 +151,14 @@ public class MovieClient {
         for (int frames = 0; frames < BufferSize; frames++) {
             MovieMessage datum = new MovieMessage(segment, frames, "");
             DatagramPacket sendPacket = new DatagramPacket(datum.serialize(), datagramSize, InetAddress.getByName(serverName), serverPort);
-            socketConnection.setSoTimeout(125);
+            socketConnection.setSoTimeout(75);
             socketConnection.send(sendPacket);
             DatagramPacket receivePacket = new DatagramPacket(new byte[datagramSize], datagramSize);
             socketConnection.receive(receivePacket);
             datum.deserialize(receivePacket.getData());
             //System.out.println("Received: <" + datum.getSegment() +", "+ datum.getFrameNumber()+">");
             buffer[frames] = new Frame(datum.getFrame());
+            Thread.sleep(50);
         }
         return buffer;
     }
