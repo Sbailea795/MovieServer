@@ -40,11 +40,11 @@ public class MovieMessage{
         byte[] segment = ByteBuffer.allocate(6).putInt(_segment).array();
         for (int i = 0; i < 6; ++i)
             rval[i] = segment[i];
-        byte[] frameNum = ByteBuffer.allocate(1).putInt(_frameNumber).array();
-            for (int i = 6; i < 7; ++i)
-                rval[i] = frameNum[i];
+        byte[] frameNum = ByteBuffer.allocate(4).putInt(_frameNumber).array();
+            for (int i = 6; i < 10; ++i)
+                rval[i] = frameNum[i-6];
         for (int i = 0; i < _frame.length; ++i){
-            rval[7+i] = _frame[i];
+            rval[10+i] = _frame[i];
         }
         return rval;
     }
@@ -63,13 +63,13 @@ public class MovieMessage{
         byte[] segment = Arrays.copyOfRange(msg, 0, 6);
         _segment = ByteBuffer.wrap(segment).getInt();
         
-        byte[] frameNum = Arrays.copyOfRange(msg, 6, 7);
+        byte[] frameNum = Arrays.copyOfRange(msg, 6, 10);
         _frameNumber = ByteBuffer.wrap(frameNum).getInt();
 
         String frame = "";
         
-        for (int i = 0; i < MAXSIZE - 7 && msg[4+i] != 0; ++i){
-            frame +=(char) msg[4 + i];
+        for (int i = 0; i < MAXSIZE - 10 && msg[10+i] != 0; ++i){
+            frame +=(char) msg[10 + i];
         }
         _frame = frame.getBytes();
     }
