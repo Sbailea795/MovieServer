@@ -42,11 +42,18 @@ public class MovieMessage{
         byte[] segment = ByteBuffer.allocate(6).putInt(_segment).array();
         for (int i = 0; i < 6; ++i)
             rval[i] = segment[i];
+
         byte[] frameNum = ByteBuffer.allocate(4).putInt(_frameNumber).array();
-            for (int i = 6; i < 10; ++i)
-                rval[i] = frameNum[i-6];
+        for (int i = 6; i < 10; ++i)
+            rval[i] = frameNum[i-6];
+
         for (int i = 0; i < _frame.length; ++i){
-            rval[10+i] = _frame[i];
+            if (i < (MAXSIZE - 10))
+                rval[10+i] = _frame[i];
+            else if (i < MAXSIZE && i > MAXSIZE - 10)
+                rval[MAXSIZE - (MAXSIZE - i)] = _frame[i];
+            else
+                break;
         }
         return rval;
     }
