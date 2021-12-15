@@ -1,9 +1,10 @@
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class MovieMessage{
-    private final int MAXSIZE = 15000;
+    private final int MAXSIZE = 20000;
     private int _segment;
     private int _frameNumber;
     private byte[] _frame;
@@ -20,7 +21,7 @@ public class MovieMessage{
     public MovieMessage(int segment, int frameNumber, String frame) throws UnsupportedEncodingException{
         _segment = segment;
         _frameNumber = frameNumber;
-        _frame = frame.getBytes("UTF-16");
+        _frame = frame.getBytes(StandardCharsets.UTF_8);
     }
 
 
@@ -78,10 +79,8 @@ public class MovieMessage{
 
         String frame = "";
         
-        for (int i = 0; i < MAXSIZE - 10 && msg[10+i] != 0; ++i){
-            frame +=(char) msg[10 + i];
-        }
-        _frame = frame.getBytes("UTF-16");
+        frame = new String(Arrays.copyOfRange(msg, 10, msg.length), StandardCharsets.UTF_8).trim();
+        _frame = frame.getBytes(StandardCharsets.UTF_8);
     }
 
 
@@ -103,6 +102,6 @@ public class MovieMessage{
     }
 
     public String getFrame(){
-        return new String(_frame);
+        return new String(_frame, StandardCharsets.UTF_8);
     }
 }
