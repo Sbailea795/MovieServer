@@ -25,19 +25,15 @@ class Main:
             #time.sleep(5)
             isASCII = False
             try:
-                print('try')
                 clientsocket.settimeout(None)
                 msg = clientsocket.recv(1024)
                 msg = clientsocket.recv(1024).strip()
                 if msg.decode('utf-8') == '1': 
                     isASCII = True
-                print('again?')
             except:
                 continue
             clientsocket.send(data.encode('utf-8'))
-            print('welcome')
             Main.welcome(clientsocket)
-            print('movie starting')
             begin = time.time()
             for segment in range(0,7304):
                 for frame in range(0,7,2):
@@ -94,5 +90,8 @@ class Main:
         clientSocket.send(text.encode('utf-8'))
         time.sleep(10)
 
-Object = Main()
-Object.loop()
+while True: 
+    try:
+        Main().loop()
+    except:
+        print('Client Disconnected')
